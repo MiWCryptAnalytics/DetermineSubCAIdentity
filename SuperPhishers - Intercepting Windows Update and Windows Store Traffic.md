@@ -162,72 +162,71 @@ the ja or jbe instructions that take us to the failure case.
 Replacing EAX=3 as a result of calling DetermineSubCAIdentity allowed both these tests to pass
 and the certificate presented on https was considered a Microsoft CA.
 
-   
-    
-<code>
 From debug outputs-
-30/05/2014 wuaueng.dll:
-00007FFAD88BCD4F 44 8B C7             mov         r8d,edi  
-00007FFAD88BCD52 BA 1E 00 00 00       mov         edx,1Eh  
-00007FFAD88BCD57 C7 85 83 00 00 00 02 00 00 00 mov         dword ptr [rbp+83h],2  
-00007FFAD88BCD61 E8 1A 43 F6 FF       call        Trace::CTrace::TraceLine (07FFAD8821080h)  
-00007FFAD88BCD66 E8 3D 75 09 00       call        AreTestKeysAllowed (07FFAD89542A8h)  
-00007FFAD88BCD6B 85 C0                test        eax,eax  
-00007FFAD88BCD6D 0F 85 A0 C9 05 00    jne         CheckSSLCertificateTrust+5CBC7h (07FFAD8919713h)  
-00007FFAD88BCD73 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
-00007FFAD88BCD77 4D 8B C6             mov         r8,r14  
-00007FFAD88BCD7A 8B D6                mov         edx,esi  
-00007FFAD88BCD7C E8 27 FC FF FF       call        DetermineSubCAIdentity (07FFAD88BC9A8h)  
-00007FFAD88BCD81 83 C0 FE             add         eax,0FFFFFFFEh  
-00007FFAD88BCD84 83 F8 01             cmp         eax,1  
-00007FFAD88BCD87 0F 87 A2 C9 05 00    ja          CheckSSLCertificateTrust+5CBE3h (07FFAD891972Fh)  
-00007FFAD88BCD8D 49 8B D6             mov         rdx,r14  
-00007FFAD88BCD90 8B CE                mov         ecx,esi  
-00007FFAD88BCD92 E8 29 00 00 00       call        FreeSubCAOverrides (07FFAD88BCDC0h)  
-00007FFAD88BCD97 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
-
-13/11/2014:
-00007FFEBE25D4D9 C7 85 83 00 00 00 02 00 00 00 mov         dword ptr [rbp+83h],2  
-00007FFEBE25D4E3 E8 98 3B FF FF       call        Trace::CTrace::TraceLine (07FFEBE251080h)  
-00007FFEBE25D4E8 E8 E7 43 FF FF       call        __AreTestKeysAllowed (07FFEBE2518D4h)  
-00007FFEBE25D4ED 85 C0                test        eax,eax  
-00007FFEBE25D4EF 0F 85 04 46 16 00    jne         CWUTaskHandler::AddRef+18AB9h (07FFEBE3C1AF9h)  
-00007FFEBE25D4F5 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
-00007FFEBE25D4F9 4D 8B C6             mov         r8,r14  
-00007FFEBE25D4FC 8B D6                mov         edx,esi  
-00007FFEBE25D4FE E8 29 FC FF FF       call        DetermineSubCAIdentity (07FFEBE25D12Ch)  
-00007FFEBE25D503 83 C0 FE             add         eax,0FFFFFFFEh  
-00007FFEBE25D506 83 F8 01             cmp         eax,1  
-00007FFEBE25D509 0F 87 05 46 16 00    ja          CWUTaskHandler::AddRef+18AD4h (07FFEBE3C1B14h)  
-00007FFEBE25D50F 49 8B D6             mov         rdx,r14  
-00007FFEBE25D512 8B CE                mov         ecx,esi  
-00007FFEBE25D514 E8 2B 00 00 00       call        FreeSubCAOverrides (07FFEBE25D544h)  
-00007FFEBE25D519 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
-00007FFEBE25D51D 48 85 C9             test        rcx,rcx  
-00007FFEBE25D520 74 06                je          CheckSSLCertificateTrust+258h (07FFEBE25D528h)  
-00007FFEBE25D522 FF 15 50 E7 33 00    call        qword ptr [__imp_CertFreeCertificateChain (07FFEBE59BC78h)]  
- 
-in storewuauth.dll:
-00007FFB6DDF2DC7 E8 BC 03 00 00       call        GetSubCAOverrides (07FFB6DDF3188h)  
-00007FFB6DDF2DCC 8B 75 67             mov         esi,dword ptr [rbp+67h]  
-00007FFB6DDF2DCF 4C 8B 74 24 40       mov         r14,qword ptr [rsp+40h]  
-00007FFB6DDF2DD4 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
-00007FFB6DDF2DD8 4D 8B C6             mov         r8,r14  
-00007FFB6DDF2DDB 8B D6                mov         edx,esi  
-00007FFB6DDF2DDD E8 6A 00 00 00       call        DetermineSubCAIdentity (07FFB6DDF2E4Ch)  
-00007FFB6DDF2DE2 83 C0 FE             add         eax,0FFFFFFFEh  
-00007FFB6DDF2DE5 83 F8 01             cmp         eax,1  
-00007FFB6DDF2DE8 76 2C                jbe         CheckSSLCertificateTrust+2FEh (07FFB6DDF2E16h)  
-00007FFB6DDF2DEA 83 65 7F 00          and         dword ptr [rbp+7Fh],0  
-00007FFB6DDF2DEE BA 1E 00 00 00       mov         edx,1Eh  
-00007FFB6DDF2DF3 4C 8D 0D 36 07 FE FF lea         r9,[string L"Certificate failed S"... (07FFB6DDD3530h)]  
-00007FFB6DDF2DFA 48 8D 4D 7F          lea         rcx,[rbp+7Fh]  
-00007FFB6DDF2DFE 44 8D 42 E3          lea         r8d,[rdx-1Dh]  
-00007FFB6DDF2E02 C7 85 83 00 00 00 03 00 00 00 mov         dword ptr [rbp+83h],3  
-00007FFB6DDF2E0C E8 9F C4 FE FF       call        Trace::CTrace::TraceLine (07FFB6DDDF2B0h)  
-00007FFB6DDF2E11 BB 0A 00 3D 80       mov         ebx,803D000Ah  
-00007FFB6DDF2E16 49 8B D6             mov         rdx,r14  
-</code>
+####30/05/2014 wuaueng.dll:####
+   
+   00007FFAD88BCD4F 44 8B C7             mov         r8d,edi  
+   00007FFAD88BCD52 BA 1E 00 00 00       mov         edx,1Eh  
+   00007FFAD88BCD57 C7 85 83 00 00 00 02 00 00 00 mov         dword ptr [rbp+83h],2  
+   00007FFAD88BCD61 E8 1A 43 F6 FF       call        Trace::CTrace::TraceLine (07FFAD8821080h)  
+   00007FFAD88BCD66 E8 3D 75 09 00       call        AreTestKeysAllowed (07FFAD89542A8h)  
+   00007FFAD88BCD6B 85 C0                test        eax,eax  
+   00007FFAD88BCD6D 0F 85 A0 C9 05 00    jne         CheckSSLCertificateTrust+5CBC7h (07FFAD8919713h)  
+   00007FFAD88BCD73 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
+   00007FFAD88BCD77 4D 8B C6             mov         r8,r14  
+   00007FFAD88BCD7A 8B D6                mov         edx,esi  
+   00007FFAD88BCD7C E8 27 FC FF FF       call        DetermineSubCAIdentity (07FFAD88BC9A8h)  
+   00007FFAD88BCD81 83 C0 FE             add         eax,0FFFFFFFEh  
+   00007FFAD88BCD84 83 F8 01             cmp         eax,1  
+   00007FFAD88BCD87 0F 87 A2 C9 05 00    ja          CheckSSLCertificateTrust+5CBE3h (07FFAD891972Fh)  
+   00007FFAD88BCD8D 49 8B D6             mov         rdx,r14  
+   00007FFAD88BCD90 8B CE                mov         ecx,esi  
+   00007FFAD88BCD92 E8 29 00 00 00       call        FreeSubCAOverrides (07FFAD88BCDC0h)  
+   00007FFAD88BCD97 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
+   
+####13/11/2014 wuaueng.dll:####
+   
+   00007FFEBE25D4D9 C7 85 83 00 00 00 02 00 00 00 mov         dword ptr [rbp+83h],2  
+   00007FFEBE25D4E3 E8 98 3B FF FF       call        Trace::CTrace::TraceLine (07FFEBE251080h)  
+   00007FFEBE25D4E8 E8 E7 43 FF FF       call        __AreTestKeysAllowed (07FFEBE2518D4h)  
+   00007FFEBE25D4ED 85 C0                test        eax,eax  
+   00007FFEBE25D4EF 0F 85 04 46 16 00    jne         CWUTaskHandler::AddRef+18AB9h (07FFEBE3C1AF9h)  
+   00007FFEBE25D4F5 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
+   00007FFEBE25D4F9 4D 8B C6             mov         r8,r14  
+   00007FFEBE25D4FC 8B D6                mov         edx,esi  
+   00007FFEBE25D4FE E8 29 FC FF FF       call        DetermineSubCAIdentity (07FFEBE25D12Ch)  
+   00007FFEBE25D503 83 C0 FE             add         eax,0FFFFFFFEh  
+   00007FFEBE25D506 83 F8 01             cmp         eax,1  
+   00007FFEBE25D509 0F 87 05 46 16 00    ja          CWUTaskHandler::AddRef+18AD4h (07FFEBE3C1B14h)  
+   00007FFEBE25D50F 49 8B D6             mov         rdx,r14  
+   00007FFEBE25D512 8B CE                mov         ecx,esi  
+   00007FFEBE25D514 E8 2B 00 00 00       call        FreeSubCAOverrides (07FFEBE25D544h)  
+   00007FFEBE25D519 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
+   00007FFEBE25D51D 48 85 C9             test        rcx,rcx  
+   00007FFEBE25D520 74 06                je          CheckSSLCertificateTrust+258h (07FFEBE25D528h)  
+   00007FFEBE25D522 FF 15 50 E7 33 00    call        qword ptr [__imp_CertFreeCertificateChain (07FFEBE59BC78h)]  
+    
+####in storewuauth.dll:####
+   
+   00007FFB6DDF2DC7 E8 BC 03 00 00       call        GetSubCAOverrides (07FFB6DDF3188h)  
+   00007FFB6DDF2DCC 8B 75 67             mov         esi,dword ptr [rbp+67h]  
+   00007FFB6DDF2DCF 4C 8B 74 24 40       mov         r14,qword ptr [rsp+40h]  
+   00007FFB6DDF2DD4 48 8B 4D 77          mov         rcx,qword ptr [rbp+77h]  
+   00007FFB6DDF2DD8 4D 8B C6             mov         r8,r14  
+   00007FFB6DDF2DDB 8B D6                mov         edx,esi  
+   00007FFB6DDF2DDD E8 6A 00 00 00       call        DetermineSubCAIdentity (07FFB6DDF2E4Ch)  
+   00007FFB6DDF2DE2 83 C0 FE             add         eax,0FFFFFFFEh  
+   00007FFB6DDF2DE5 83 F8 01             cmp         eax,1  
+   00007FFB6DDF2DE8 76 2C                jbe         CheckSSLCertificateTrust+2FEh (07FFB6DDF2E16h)  
+   00007FFB6DDF2DEA 83 65 7F 00          and         dword ptr [rbp+7Fh],0  
+   00007FFB6DDF2DEE BA 1E 00 00 00       mov         edx,1Eh  
+   00007FFB6DDF2DF3 4C 8D 0D 36 07 FE FF lea         r9,[string L"Certificate failed S"... (07FFB6DDD3530h)]  
+   00007FFB6DDF2DFA 48 8D 4D 7F          lea         rcx,[rbp+7Fh]  
+   00007FFB6DDF2DFE 44 8D 42 E3          lea         r8d,[rdx-1Dh]  
+   00007FFB6DDF2E02 C7 85 83 00 00 00 03 00 00 00 mov         dword ptr [rbp+83h],3  
+   00007FFB6DDF2E0C E8 9F C4 FE FF       call        Trace::CTrace::TraceLine (07FFB6DDDF2B0h)  
+   00007FFB6DDF2E11 BB 0A 00 3D 80       mov         ebx,803D000Ah  
+   00007FFB6DDF2E16 49 8B D6             mov         rdx,r14  
 
 The python script DetermineSubCAIdentity.py was developed that hooks this function in 
 the service that is handling Windows Update.
