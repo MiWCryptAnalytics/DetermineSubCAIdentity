@@ -1,0 +1,135 @@
+Common subdirectories: sslsplit-0.4.10/extra and sslsplit-0.4.10-sha256/extra
+diff --new-file -u sslsplit-0.4.10/log.c sslsplit-0.4.10-sha256/log.c
+--- sslsplit-0.4.10/log.c	2014-11-28 20:28:58.000000000 +1100
++++ sslsplit-0.4.10-sha256/log.c	2015-02-25 23:52:18.617445519 +1100
+@@ -31,6 +31,7 @@
+ #include "logger.h"
+ #include "sys.h"
+ #include "attrib.h"
++#include "replace.h"
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -282,6 +283,7 @@
+ 	/* set up buffer to hold our generated file path */
+ 	size_t path_buflen = PATH_BUF_INC;
+ 	char *path_buf = malloc(path_buflen);
++	char *cleaned_addr;
+ 	if (path_buf == NULL) {
+ 		log_err_printf("failed to allocate path buffer\n");
+ 		return NULL;
+@@ -316,12 +318,14 @@
+ 				elem_len = 1;
+ 				break;
+ 			case 'd':
+-				elem = dstaddr;
+-				elem_len = strlen(dstaddr);
++				cleaned_addr = replace_str2(dstaddr, ":", ".");
++				elem = cleaned_addr;
++				elem_len = strlen(cleaned_addr);
+ 				break;
+ 			case 's':
+-				elem = srcaddr;
+-				elem_len = strlen(srcaddr);
++				cleaned_addr = replace_str2(srcaddr, ":", ".");
++                                elem = cleaned_addr;
++				elem_len = strlen(cleaned_addr);
+ 				break;
+ 			case 'x':
+ 				if (exec_path) {
+Common subdirectories: sslsplit-0.4.10/logdir and sslsplit-0.4.10-sha256/logdir
+diff --new-file -u sslsplit-0.4.10/main.c sslsplit-0.4.10-sha256/main.c
+--- sslsplit-0.4.10/main.c	2014-11-28 20:28:58.000000000 +1100
++++ sslsplit-0.4.10-sha256/main.c	2015-03-01 19:12:48.000000000 +1100
+@@ -638,7 +638,7 @@
+ #endif /* __APPLE__ */
+ 	}
+ 	if (opts_has_ssl_spec(opts) && opts->cakey && !opts->key) {
+-		opts->key = ssl_key_genrsa(1024);
++		opts->key = ssl_key_genrsa(2048);
+ 		if (!opts->key) {
+ 			fprintf(stderr, "%s: error generating RSA key:\n",
+ 			                argv0);
+diff --new-file -u sslsplit-0.4.10/replace.c sslsplit-0.4.10-sha256/replace.c
+--- sslsplit-0.4.10/replace.c	1970-01-01 10:00:00.000000000 +1000
++++ sslsplit-0.4.10-sha256/replace.c	2015-02-25 23:24:57.849486212 +1100
+@@ -0,0 +1,58 @@
++/* from http://creativeandcritical.net/str-replace-c
++*/
++
++#include <string.h>
++#include <stdlib.h>
++#include <stddef.h>
++
++char *replace_str2(const char *str, const char *old, const char *new)
++{
++	char *ret, *r;
++	const char *p, *q;
++	size_t oldlen = strlen(old);
++	size_t count, retlen, newlen = strlen(new);
++	int samesize = (oldlen == newlen);
++
++	if (!samesize) {
++		for (count = 0, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen)
++			count++;
++		/* This is undefined if p - str > PTRDIFF_MAX */
++		retlen = p - str + strlen(p) + count * (newlen - oldlen);
++	} else
++		retlen = strlen(str);
++
++	if ((ret = malloc(retlen + 1)) == NULL)
++		return NULL;
++
++	r = ret, p = str;
++	while (1) {
++		/* If the old and new strings are different lengths - in other
++		 * words we have already iterated through with strstr above,
++		 * and thus we know how many times we need to call it - then we
++		 * can avoid the final (potentially lengthy) call to strstr,
++		 * which we already know is going to return NULL, by
++		 * decrementing and checking count.
++		 */
++		if (!samesize && !count--)
++			break;
++		/* Otherwise i.e. when the old and new strings are the same
++		 * length, and we don't know how many times to call strstr,
++		 * we must check for a NULL return here (we check it in any
++		 * event, to avoid further conditions, and because there's
++		 * no harm done with the check even when the old and new
++		 * strings are different lengths).
++		 */
++		if ((q = strstr(p, old)) == NULL)
++			break;
++		/* This is undefined if q - p > PTRDIFF_MAX */
++		ptrdiff_t l = q - p;
++		memcpy(r, p, l);
++		r += l;
++		memcpy(r, new, newlen);
++		r += newlen;
++		p = q + oldlen;
++	}
++	strcpy(r, p);
++
++	return ret;
++}
+diff --new-file -u sslsplit-0.4.10/replace.h sslsplit-0.4.10-sha256/replace.h
+--- sslsplit-0.4.10/replace.h	1970-01-01 10:00:00.000000000 +1000
++++ sslsplit-0.4.10-sha256/replace.h	2015-02-25 23:26:13.673484332 +1100
+@@ -0,0 +1,4 @@
++/* from http://creativeandcritical.net/str-replace-c
++*/
++
++char *replace_str2(const char *str, const char *old, const char *new);
+diff --new-file -u sslsplit-0.4.10/ssl.c sslsplit-0.4.10-sha256/ssl.c
+--- sslsplit-0.4.10/ssl.c	2014-11-28 20:28:58.000000000 +1100
++++ sslsplit-0.4.10-sha256/ssl.c	2015-03-26 22:56:42.899524298 +1100
+@@ -822,7 +822,7 @@
+ 	switch (EVP_PKEY_type(cakey->type)) {
+ #ifndef OPENSSL_NO_RSA
+ 		case EVP_PKEY_RSA:
+-			md = EVP_sha1();
++			md = EVP_sha256();
+ 			break;
+ #endif /* !OPENSSL_NO_RSA */
+ #ifndef OPENSSL_NO_DSA
+Common subdirectories: sslsplit-0.4.10/xnu and sslsplit-0.4.10-sha256/xnu
