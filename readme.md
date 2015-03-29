@@ -122,7 +122,7 @@ Additionally, SSLSplit uses the destination ip address and port as a string in t
 This causes the : delimiter to be included in the filename, which is an illegal character for 
 filenames in windows. 
 
-Adjusting the SSLStrip source to call OpenSSL EVP_sha256();
+Adjusting the sslsplit source to call OpenSSL EVP_sha256();
 Using replace.c from http://creativeandcritical.net/str-replace-c sorted
 this, changing the : to a .
 	
@@ -132,7 +132,7 @@ to
 opts->key = ssl_key_genrsa(2048)
 in main.c
 
-    This patch for SSLStrip 4.10.0 is: sslsplit-0.4.10-sha256+filename-change-to-dots.patch
+    This patch for sslsplit 4.10.0 is: sslsplit-0.4.10-sha256+filename-change-to-dots.patch
 
 ###Bypassing Countermeasure 2: Windows Update Error 0x8024006###
 
